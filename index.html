@@ -141,8 +141,8 @@
                      class="h-12 w-12 sm:h-14 sm:w-14 object-contain bg-white rounded-full p-1 shadow-md border-2 border-white/50 backdrop-blur-sm">
             </div>
 
-            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-wide drop-shadow-md mt-2">Đăng Ký Nhân Viên</h1>
-            <p class="text-white/90 text-sm mt-2 font-light">Hệ thống nhận diện Căn cước công dân tự động</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-wide drop-shadow-md mt-2">Đăng Ký Sen Việt Group</h1>
+            <p class="text-white/90 text-sm mt-2 font-light">Hệ thống đăng kí Sen Việt Group tự động</p>
         </div>
 
         <div class="p-6 space-y-6">
@@ -190,6 +190,12 @@
                                 <div class="text-xs font-medium">Mặt trước CCCD</div>
                             </div>
                             <img id="img-front" class="hidden" src="">
+                            
+                            <!-- Rotate Button Front -->
+                            <button type="button" onclick="event.preventDefault(); rotateImage('front')" id="btn-rotate-front" class="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full hidden flex items-center justify-center z-20 transition-all shadow-md" title="Xoay ảnh 90 độ">
+                                <i class="fa-solid fa-rotate-right text-sm"></i>
+                            </button>
+
                             <div id="loading-front" class="absolute inset-0 bg-white/90 hidden flex-col items-center justify-center z-10 backdrop-blur-sm">
                                 <div class="loader mb-2 border-t-emerald-500"></div>
                                 <span class="text-xs text-emerald-600 font-bold animate-pulse">Đang xử lý...</span>
@@ -209,6 +215,12 @@
                                 <div class="text-xs font-medium">Mặt sau CCCD</div>
                             </div>
                             <img id="img-back" class="hidden" src="">
+
+                            <!-- Rotate Button Back -->
+                            <button type="button" onclick="event.preventDefault(); rotateImage('back')" id="btn-rotate-back" class="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full hidden flex items-center justify-center z-20 transition-all shadow-md" title="Xoay ảnh 90 độ">
+                                <i class="fa-solid fa-rotate-right text-sm"></i>
+                            </button>
+
                             <div id="loading-back" class="absolute inset-0 bg-white/90 hidden flex-col items-center justify-center z-10 backdrop-blur-sm">
                                 <div class="loader mb-2 border-t-emerald-500"></div>
                                 <span class="text-xs text-emerald-600 font-bold animate-pulse">Đang xử lý...</span>
@@ -245,6 +257,14 @@
                                 <option value="VDS THỜI VỤ">VDS THỜI VỤ</option>
                                 <option value="SOHAN THỜI VỤ">SOHAN THỜI VỤ</option>
                                 <option value="LUXSHARE">LUXSHARE</option>
+                                <!-- New Companies -->
+                                <option value="Fukang">Fukang</option>
+                                <option value="Newwing">Newwing</option>
+                                <option value="Fuyu">Fuyu</option>
+                                <option value="Fulian">Fulian</option>
+                                <option value="Lens">Lens</option>
+                                <option value="Fuhong">Fuhong</option>
+                                <option value="Tawlay">Tawlay</option>
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -276,6 +296,13 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Registration Date -->
+                    <div class="input-group">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 transition-colors">Ngày Đăng Kí</label>
+                        <input type="date" id="registerDate" class="w-full p-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all outline-none">
+                    </div>
+
                 </div>
 
                 <!-- Personal Info Section -->
@@ -349,7 +376,7 @@
         
         <!-- Footer -->
         <div class="bg-gray-50 p-4 text-center text-xs text-gray-400 border-t">
-            &copy; 2024 Sen Viet Group. Powered by Google Vision AI.
+            &copy; 2026 Sen Việt . Powered by Sen Việt Group.
         </div>
     </div>
 
@@ -359,7 +386,7 @@
     <script>
         // CONFIGURATION
         const GOOGLE_API_KEY = 'AIzaSyB2JUVRGd-oREdyYyvznfiZ0WAFldr8Mic'; 
-        const N8N_WEBHOOK_URL = 'https://senvietgroup.com/webhook-test/7c94115b-60fe-48e1-b3a9-5c00f00a71a1';
+        const N8N_WEBHOOK_URL = 'https://senvietgroup.com/webhook-test/aa821db7-c04a-4ef1-b34f-8fc4bb08d355';
         
         // --- SNOW EFFECT LOGIC ---
         function createSnowflake() {
@@ -549,8 +576,8 @@
             return isoStr;
         }
 
-        // --- GOOGLE VISION API OCR LOGIC ---
-        
+        // --- IMAGE ROTATION & OCR LOGIC ---
+
         function handleImageUpload(input, side) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -583,21 +610,22 @@
                             finalBase64 = e.target.result;
                         }
 
-                        // UI Updates with the (possibly rotated) image
+                        // UI Updates
                         const imgEl = document.getElementById(`img-${side}`);
                         const loadingEl = document.getElementById(`loading-${side}`);
                         const iconDiv = document.querySelector(`#preview-box-${side} div:first-child`);
+                        const rotateBtn = document.getElementById(`btn-rotate-${side}`);
                         
                         imgEl.src = finalBase64;
                         imgEl.classList.remove('hidden');
+                        
                         if(iconDiv) iconDiv.classList.add('hidden');
+                        if(rotateBtn) rotateBtn.classList.remove('hidden'); // Show rotate button
                         
                         // Show loading overlay
                         loadingEl.classList.remove('hidden');
                         loadingEl.style.display = 'flex';
 
-                        // Extract base64 content for API (remove "data:image/jpeg;base64,")
-                        // Ensure we handle potentially different mime types if original was used
                         const base64Content = finalBase64.split(',')[1];
                         analyzeImageWithVision(base64Content, side);
                     };
@@ -608,6 +636,41 @@
             }
         }
 
+        // Function to rotate image 90 degrees clockwise manually
+        function rotateImage(side) {
+            const img = document.getElementById(`img-${side}`);
+            if (!img.src) return;
+
+            // Show loading
+            document.getElementById(`loading-${side}`).classList.remove('hidden');
+            document.getElementById(`loading-${side}`).style.display = 'flex';
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const image = new Image();
+
+            image.onload = function() {
+                // Swap width and height for 90 degree rotation
+                canvas.width = image.height;
+                canvas.height = image.width;
+
+                // Translate and rotate
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(90 * Math.PI / 180);
+                ctx.drawImage(image, -image.width / 2, -image.height / 2);
+
+                const newBase64 = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // Update UI
+                img.src = newBase64;
+                
+                // Re-run OCR with new orientation
+                const base64Content = newBase64.split(',')[1];
+                analyzeImageWithVision(base64Content, side);
+            };
+            image.src = img.src;
+        }
+
         async function analyzeImageWithVision(base64Image, side) {
             const url = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_API_KEY}`;
             const requestBody = {
@@ -615,7 +678,7 @@
                     image: { content: base64Image },
                     features: [{ type: "TEXT_DETECTION" }],
                     imageContext: {
-                        languageHints: ["vi"] // Hint for Vietnamese
+                        languageHints: ["vi"]
                     }
                 }]
             };
@@ -635,7 +698,7 @@
                     const fullText = data.responses[0].fullTextAnnotation.text;
                     console.log(`OCR Result (${side}):`, fullText);
                     parseOCRData(fullText, side);
-                    showToast(`Đã đọc ${side === 'front' ? 'mặt trước' : 'mặt sau'}!`, "success");
+                    showToast(`Đã đọc xong ${side === 'front' ? 'mặt trước' : 'mặt sau'}!`, "success");
                 } else {
                     showToast(`Không tìm thấy chữ ở ${side === 'front' ? 'mặt trước' : 'mặt sau'}.`, "warning");
                 }
@@ -656,7 +719,7 @@
                 // --- PARSE FRONT SIDE ---
                 let idFound = false;
                 
-                // Aggressive ID search (remove spaces in case OCR adds them: 012 345...)
+                // Aggressive ID search
                 const cleanText = text.replace(/\s/g, '');
                 const idMatch = cleanText.match(/\d{12}/);
                 if (idMatch) {
@@ -668,14 +731,13 @@
                     const line = lines[i].trim();
                     const lowerLine = line.toLowerCase();
 
-                    // Fallback ID if aggressive search failed (rare)
+                    // Fallback ID
                     if (!idFound && (lowerLine.includes("số") || lowerLine.includes("no"))) {
                         const matches = line.match(/\d{12}/);
                         if (matches) document.getElementById('cccd').value = matches[0];
                     }
 
                     // Name
-                    // Logic: Line after "Họ và tên" OR line that is ALL CAPS and not a header
                     if (lowerLine.includes("họ và tên") || lowerLine.includes("full name")) {
                         if (i + 1 < lines.length) {
                             let potentialName = lines[i+1].trim();
@@ -684,7 +746,7 @@
                             }
                         }
                     } 
-                    // Fallback Name: Look for uppercase lines that aren't keywords (for Căn Cước new format)
+                    // Fallback Name
                     else if (!document.getElementById('fullname').value && 
                              line === line.toUpperCase() && 
                              line.length > 5 && 
@@ -707,14 +769,12 @@
                         }
                     }
                     
-                    // Address: "Nơi thường trú" OR "Nơi cư trú" (Old format & transitional)
+                    // Address
                     if (lowerLine.includes("thường trú") || lowerLine.includes("cư trú") || lowerLine.includes("residence")) {
                          let addr = "";
-                         // Try to capture subsequent lines until we hit a date or "Có giá trị"
                          for(let j=1; j<=3; j++) {
                              if(i + j < lines.length) {
                                  const nextLine = lines[i+j];
-                                 // Stop conditions for address
                                  if(nextLine.includes("Có giá trị") || nextLine.includes("Date of expiry") || nextLine.match(/\d{2}\/\d{2}\/\d{4}/)) break;
                                  addr += nextLine + ", ";
                              }
@@ -728,7 +788,6 @@
                 // --- PARSE BACK SIDE ---
                 
                 // 1. Issue Date
-                // Pattern 1: "Ngày 10 tháng 05 năm 2021"
                 const dateRegex = /ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})/i;
                 const match = text.match(dateRegex);
                 
@@ -738,40 +797,27 @@
                     const year = match[3];
                     document.getElementById('issueDate').value = `${year}-${month}-${day}`;
                 } else {
-                    // Pattern 2: "Date: 10/05/2021" or just finding a date on the right side
                     const allDates = text.match(/\d{2}\/\d{2}\/\d{4}/g);
                     if (allDates && allDates.length > 0) {
-                        // Usually the issue date is at the bottom right. 
-                        // If multiple dates (rare on back), pick the last one.
                         document.getElementById('issueDate').value = convertOcrDateToISO(allDates[allDates.length - 1]);
                     }
                 }
 
-                // 2. Address (Nơi cư trú) - NEW CĂN CƯỚC 2024
-                // Look for "Nơi cư trú" header
+                // 2. Address (New CCCD)
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     const lowerLine = line.toLowerCase();
                     
                     if (lowerLine.includes("nơi cư trú") || lowerLine.includes("place of residence")) {
                         let addr = "";
-                        // Capture subsequent lines
                         for (let j = 1; j < 5; j++) {
                             if (i + j < lines.length) {
                                 const nextLine = lines[i+j].trim();
                                 const lowerNext = nextLine.toLowerCase();
-                                
-                                // Stop if we hit the next section (Birth reg or Ministry or Date)
-                                if (lowerNext.includes("nơi đăng ký khai sinh") || lowerNext.includes("place of birth") || lowerNext.includes("bộ công an")) {
-                                    break;
-                                }
-                                // Avoid capturing dates by mistake
-                                if (!nextLine.match(/\d{2}\/\d{2}\/\d{4}/)) {
-                                    addr += nextLine + ", ";
-                                }
+                                if (lowerNext.includes("nơi đăng ký khai sinh") || lowerNext.includes("place of birth") || lowerNext.includes("bộ công an")) break;
+                                if (!nextLine.match(/\d{2}\/\d{2}\/\d{4}/)) addr += nextLine + ", ";
                             }
                         }
-                        
                         addr = addr.replace(/,$/, '').trim();
                         if (addr.length > 5) {
                             document.getElementById('address').value = addr;
@@ -781,8 +827,6 @@
                 }
 
                 // 3. Issue Place
-                // Old Chip: "Cục trưởng Cục Cảnh sát..."
-                // New Chip: "BỘ CÔNG AN"
                 if (lowerText.includes("cục cảnh sát") || lowerText.includes("police")) {
                     document.getElementById('issuePlace').value = "Cục Cảnh sát QLHC về TTXH";
                 } else if (lowerText.includes("bộ công an") || lowerText.includes("ministry of public security")) {
@@ -797,7 +841,6 @@
 
         // --- RESET PAGE LOGIC ---
         function resetPage() {
-            // Confirm with user to avoid accidental clicks
             if(confirm("Bạn có chắc chắn muốn xóa hết thông tin để nhập lại từ đầu không?")) {
                 performReset();
                 showToast("Đã xóa trắng thông tin!", "info");
@@ -805,66 +848,56 @@
         }
 
         function performReset() {
-             // 1. Reset standard form fields
             document.getElementById('employeeForm').reset();
-            
-            // 2. Explicitly clear file inputs
             document.getElementById('file-front').value = "";
             document.getElementById('file-back').value = "";
-            document.getElementById('qr-input-file').value = ""; // Clear QR file input too
+            document.getElementById('qr-input-file').value = "";
+            // Reset date to today
+            document.getElementById('registerDate').valueAsDate = new Date();
 
-            // 3. Reset Images
             const resetImage = (side) => {
                 const img = document.getElementById(`img-${side}`);
                 const icon = document.querySelector(`#preview-box-${side} div:first-child`);
                 const loading = document.getElementById(`loading-${side}`);
+                const rotateBtn = document.getElementById(`btn-rotate-${side}`);
                 
                 if(img) { img.src = ""; img.classList.add('hidden'); }
                 if(icon) { icon.classList.remove('hidden'); }
                 if(loading) { loading.classList.add('hidden'); loading.style.display = 'none'; }
+                if(rotateBtn) { rotateBtn.classList.add('hidden'); }
             };
             resetImage('front');
             resetImage('back');
 
-            // 4. Close scanner if running
-            if(isScanning) {
-                stopQrScanner();
-            }
+            if(isScanning) { stopQrScanner(); }
             
-            // Force reset selects to index 0 just in case
             document.getElementById('company').selectedIndex = 0;
             document.getElementById('supplier').selectedIndex = 0;
-
-            // 5. Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // --- SUBMIT TO N8N ---
-
         async function submitForm(e) {
             e.preventDefault();
-            
             const btn = document.getElementById('submitBtn');
             const originalBtnContent = btn.innerHTML;
             
             btn.disabled = true;
             btn.innerHTML = `<div class="loader w-5 h-5 border-2 border-t-white border-transparent mr-2"></div> Đang gửi...`;
 
-            // Get Date Values
             const dobVal = document.getElementById('dob').value;
             const issueVal = document.getElementById('issueDate').value;
+            const regDateVal = document.getElementById('registerDate').value;
             
-            // Get Image Base64 Data
             const imgFront = document.getElementById('img-front').src;
             const imgBack = document.getElementById('img-back').src;
-            
             const cleanImgFront = (imgFront && imgFront.startsWith('data:')) ? imgFront : "";
             const cleanImgBack = (imgBack && imgBack.startsWith('data:')) ? imgBack : "";
 
-            // Construct JSON Body - FLAT Structure as requested
             const formData = {
                 company: document.getElementById('company').value,
                 supplier: document.getElementById('supplier').value,
+                registerDate: formatISOToDisplay(regDateVal), // Add register date
                 fullname: document.getElementById('fullname').value,
                 cccd: document.getElementById('cccd').value,
                 dob: formatISOToDisplay(dobVal),
@@ -872,23 +905,19 @@
                 issuePlace: document.getElementById('issuePlace').value,
                 address: document.getElementById('address').value,
                 phone: document.getElementById('phone').value,
-                // Add Images as separate fields
                 image_front: cleanImgFront,
                 image_back: cleanImgBack,
                 timestamp: new Date().toISOString()
             };
 
             try {
-                // REMOVED 'no-cors' to ensure Content-Type header is sent.
                 await fetch(N8N_WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
-
                 showToast("Đã gửi thông tin lên hệ thống!", "success");
                 performReset();
-
             } catch (error) {
                 console.error("Webhook Error:", error);
                 if (error.message.includes('Failed to fetch')) {
@@ -909,7 +938,6 @@
             
             let bgClass = "bg-gray-800";
             let icon = '<i class="fa-solid fa-info-circle"></i>';
-            
             if (type === "success") { bgClass = "bg-green-600"; icon = '<i class="fa-solid fa-check-circle"></i>'; }
             if (type === "error") { bgClass = "bg-red-600"; icon = '<i class="fa-solid fa-exclamation-circle"></i>'; }
             if (type === "warning") { bgClass = "bg-yellow-600"; icon = '<i class="fa-solid fa-exclamation-triangle"></i>'; }
@@ -918,13 +946,17 @@
             toast.innerHTML = `${icon} <span>${message}</span>`;
             
             container.appendChild(toast);
-            
             requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-10');
                 setTimeout(() => toast.remove(), 500);
             }, 3000);
         }
+
+        // Initialize Date Input with Today
+        document.addEventListener('DOMContentLoaded', (event) => {
+             document.getElementById('registerDate').valueAsDate = new Date();
+        });
     </script>
 </body>
 </html>
